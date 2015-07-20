@@ -40,6 +40,26 @@ inline int read_depth(const char* file, cv::Mat& img)
 	return 0;
 }
 
+inline int read_depth_by_gaoyu(const char* file, cv::Mat& img)
+{
+	std::ifstream ifs(file);
+	if ( !ifs.is_open() ) {
+		std::cout << "read_depth(): open file failed.\n";
+		return -1;
+	}
+	int height, width; std::vector<float> data;
+	ifs.read( (char*)&height, sizeof(int) );
+	ifs.read( (char*)&width, sizeof(int) );
+	data.resize( height*width );
+	ifs.read( (char*)&data[0], sizeof(float)*height*width );
+	ifs.close();
+	img.create(height, width, CV_32FC1);
+	for(int i=0; i<img.rows; ++i)
+		for(int j=0; j<img.cols; ++j)
+			img.at<float>(i,j) = data[i*img.cols+j];
+	return 0;
+}
+
 inline int read_bgmodel(const char* file, cv::Mat& img_rgb, cv::Mat& img_depth)
 {
 	std::ifstream ifs(file);
