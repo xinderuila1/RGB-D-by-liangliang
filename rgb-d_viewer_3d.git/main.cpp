@@ -83,6 +83,9 @@ void draw_world()
 
 #define DATA_FILE_PATH "../data/"
 
+
+
+//读取数据的部分写在绘制函数里面  Add by gaoyu 2015-7-20
 void draw_model()
 {
 //	glutSolidTeapot(1);
