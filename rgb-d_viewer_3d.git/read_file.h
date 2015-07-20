@@ -8,7 +8,7 @@
 #include <vector>
 #include <fstream>
 
-
+//读取相应数据的函数   Add by gaoyu 2015-7-20
 inline int read_rgb(const char* file, cv::Mat& img)
 {
 	img = cv::imread( file );
