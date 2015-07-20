@@ -260,5 +260,5 @@ int main(void)
 	cv::imshow("depth", norm );
 	cv::waitKey(0);
 
-	glStaff::renderLoop(draw);
+	//glStaff::renderLoop(draw);
 }
