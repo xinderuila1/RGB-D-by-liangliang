@@ -27,7 +27,7 @@ void coor_img2cam(const cv::Mat& img_d, cv::Mat& img_out)
 			pc.x = xfac * d;
 			pc.y = yfac * d;
 			pc.z = d;
-			pc = pc * (1/1000.0f);
+			//pc = pc * (1/1000.0f);
 		}
 
 }
@@ -96,11 +96,16 @@ static int file_i=0, first=1;
 		file_i = (file_i+1) % 800;
 		char ss[100]; sprintf(ss, "%d", file_i);
 		std::string file_name;
-		file_name = std::string(DATA_FILE_PATH"rgb/") + ss + ".jpg";
+		file_name = std::string(DATA_FILE_PATH"rgb/") + ss + ".png";
 		read_rgb(file_name.c_str(), img_rgb);
 		file_name = std::string(DATA_FILE_PATH"depth/") + ss + ".dat";
 		//file_name = "../data/MoG_bgmodel.dat";
-		read_depth(file_name.c_str(), img_depth);
+		//read_depth(file_name.c_str(), img_depth);
+
+
+		read_depth_by_gaoyu(file_name.c_str(), img_depth);
+
+
 //		read_bgmodel( "../data/MoG_bgmodel.dat", img_rgb, img_depth );
 //		cv::imwrite("bg_rgb.png", img_rgb);
 //		img_depth = img_depth * (255/10000.0f);
@@ -113,18 +118,18 @@ static int file_i=0, first=1;
 		std::cout << "img num: " << file_i << "\n";
 	}
 
-	if(play_mode){
+	if(true){
 		GLboolean elt = glIsEnabled(GL_LIGHTING);
 		GLboolean tex = glIsEnabled(GL_TEXTURE_2D);
 		glDisable(GL_LIGHTING);
 		glDisable(GL_TEXTURE_2D);
 
-		float rgb[4]={0,0,0, 1};
+		float rgb[4]={0,1,0, 1};
 		glBegin(GL_POINTS);
 		for(int i=0; i<img_3d.rows; ++i)
 			for(int j=0; j<img_3d.cols; ++j){
-				glStaff::hsl_to_rgb((img_3d.at<cv::Point3f>(i,j).y-1)/4*360,
-						1, 0.5f, rgb);
+//				glStaff::hsl_to_rgb((img_3d.at<cv::Point3f>(i,j).y-1)/4*360,
+//						1, 0.5f, rgb);
 				glColor3fv(rgb);
 				glVertex3fv(&img_3d.at<cv::Point3f>(i,j).x);
 			}
@@ -201,40 +206,10 @@ void init_tex()
 }
 
 
-//int main(void)
-//{
-//	glStaff::init_win(800, 800, "OpenGL", "");
-//	glStaff::init_gl(); // have to be called after glStaff::init_win
-//
-//	glStaff::set_mat_view(
-//		glm::lookAt( glm::vec3(0,5,-10), glm::vec3(0,0,0), glm::vec3(0,1,0) ) );
-//	glStaff::set_mat_model(
-//		glm::rotate(3.14f*0.17f, glm::vec3(1,0,0)) * glm::translate( glm::vec3(0,0,-5) ) );
-//
-//	glStaff::add_key_callback('P', mkey_p, L"print");
-//	glStaff::add_key_callback('T', mkey_t, L"tex");
-//	glStaff::add_key_callback('A', mkey_a, L"a");
-//	glStaff::add_key_callback('M', mkey_m, L"a");
-//
-////	read_rgb("../data/rgb/209.jpg", img_rgb);
-////	read_depth("../data/depth/209.dat", img_depth);
-////	coor_img2cam(img_depth, img_3d);
-////	reconstruct(img_3d, tri_idxes);
-//	init_tex();
-//	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-//
-////	cv::imshow("rgb", img_rgb);
-////	cv::imshow("depth", img_depth*(1.0f/10000) );
-////	cv::waitKey(0);
-//
-//	glStaff::renderLoop(draw);
-//}
-
-//Add by gaoyu 2015-7-20
 int main(void)
 {
-//	glStaff::init_win(800, 800, "OpenGL", "");
-//	glStaff::init_gl(); // have to be called after glStaff::init_win
+	glStaff::init_win(800, 800, "OpenGL", "");
+	glStaff::init_gl(); // have to be called after glStaff::init_win
 
 	glStaff::set_mat_view(
 		glm::lookAt( glm::vec3(0,5,-10), glm::vec3(0,0,0), glm::vec3(0,1,0) ) );
@@ -246,19 +221,49 @@ int main(void)
 	glStaff::add_key_callback('A', mkey_a, L"a");
 	glStaff::add_key_callback('M', mkey_m, L"a");
 
-	read_rgb("../data/rgb/00000011.png", img_rgb);
-	read_depth_by_gaoyu("../data/depth/00000011.dat", img_depth);
-	cv::Mat norm;
-	cv::normalize(img_depth,norm,255,0,CV_MINMAX,CV_8UC1);//注意归一化到0~255很重要 Add by gaoyu 2015-7-20
+//	read_rgb("../data/rgb/209.jpg", img_rgb);
+//	read_depth("../data/depth/209.dat", img_depth);
 //	coor_img2cam(img_depth, img_3d);
 //	reconstruct(img_3d, tri_idxes);
 	init_tex();
 	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
-	cv::imshow("rgb", img_rgb);
-//	cv::imshow("depth", img_depth*(1.0f/10000) );//注意最好不要用诚意倍数的方式归一化 Add by gaoyu 2015-7-20
-	cv::imshow("depth", norm );
-	cv::waitKey(0);
+//	cv::imshow("rgb", img_rgb);
+//	cv::imshow("depth", img_depth*(1.0f/10000) );
+//	cv::waitKey(0);
 
-	//glStaff::renderLoop(draw);
+	glStaff::renderLoop(draw);
 }
+
+//Add by gaoyu 2015-7-20
+//int main(void)
+//{
+////	glStaff::init_win(800, 800, "OpenGL", "");
+////	glStaff::init_gl(); // have to be called after glStaff::init_win
+//
+//	glStaff::set_mat_view(
+//		glm::lookAt( glm::vec3(0,5,-10), glm::vec3(0,0,0), glm::vec3(0,1,0) ) );
+//	glStaff::set_mat_model(
+//		glm::rotate(3.14f*0.17f, glm::vec3(1,0,0)) * glm::translate( glm::vec3(0,0,-5) ) );
+//
+//	glStaff::add_key_callback('P', mkey_p, L"print");
+//	glStaff::add_key_callback('T', mkey_t, L"tex");
+//	glStaff::add_key_callback('A', mkey_a, L"a");
+//	glStaff::add_key_callback('M', mkey_m, L"a");
+//
+//	read_rgb("../data/rgb/00000011.png", img_rgb);
+//	read_depth_by_gaoyu("../data/depth/00000011.dat", img_depth);
+//	cv::Mat norm;
+//	cv::normalize(img_depth,norm,255,0,CV_MINMAX,CV_8UC1);//注意归一化到0~255很重要 Add by gaoyu 2015-7-20
+////	coor_img2cam(img_depth, img_3d);
+////	reconstruct(img_3d, tri_idxes);
+//	init_tex();
+//	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+//
+//	cv::imshow("rgb", img_rgb);
+////	cv::imshow("depth", img_depth*(1.0f/10000) );//注意最好不要用诚意倍数的方式归一化 Add by gaoyu 2015-7-20
+//	cv::imshow("depth", norm );
+//	cv::waitKey(0);
+//
+//	//glStaff::renderLoop(draw);
+//}
