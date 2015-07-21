@@ -11,6 +11,7 @@
 inline int read_rgb(const char* file, cv::Mat& img)
 {
 	img = cv::imread( file );
+	cv::cvtColor(img,img,CV_BGR2RGB);//BGR转RGB
 	cv::flip(img,img,0);//Add by gaoyu 2015-7-21图像翻转,否则贴的文理时错的
 	if( img.empty() ) {
 		std::cout << "read_rgb(): Can not load image.\n";

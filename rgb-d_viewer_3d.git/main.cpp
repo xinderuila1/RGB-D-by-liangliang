@@ -61,7 +61,7 @@ void coor_img2cam_by_gaoyu(const cv::Mat& img_d, cv::Mat& img_out)
 			glPopMatrix();
 			winX = x;
 			winY = y;
-			winZ = d;
+			winZ = d*0.99;//注意记住这个参数,否则有些远的地方纹理贴不上
 //			glReadPixels((int)winX, (int)winY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
 			gluUnProject(winX, winY, winZ, modelview, projection, viewport, &posX, &posY, &posZ);
 			pc.x = posX;
