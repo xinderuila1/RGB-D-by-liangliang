@@ -11,6 +11,7 @@
 inline int read_rgb(const char* file, cv::Mat& img)
 {
 	img = cv::imread( file );
+	cv::flip(img,img,0);//Add by gaoyu 2015-7-21图像翻转,否则贴的文理时错的
 	if( img.empty() ) {
 		std::cout << "read_rgb(): Can not load image.\n";
 		return -1;
@@ -54,12 +55,12 @@ inline int read_depth_by_gaoyu(const char* file, cv::Mat& img)
 	ifs.read( (char*)&data[0], sizeof(float)*height*width );
 	ifs.close();
 	img.create(height, width, CV_32FC1);
-//	for(int i=0; i<img.rows; ++i)
-//		for(int j=0; j<img.cols; ++j)
-//			img.at<float>(i,j) = data[i*img.cols+j];
-	for(int i = img.rows - 1,k = 0; i >= 0; --i,k++)
+	for(int i=0; i<img.rows; ++i)
 		for(int j=0; j<img.cols; ++j)
-			img.at<float>(k,j) = data[i*img.cols+j];
+			img.at<float>(i,j) = data[i*img.cols+j];
+//	for(int i = img.rows - 1,k = 0; i >= 0; --i,k++)
+//		for(int j=0; j<img.cols; ++j)
+//			img.at<float>(k,j) = data[i*img.cols+j];
 
 
 	return 0;

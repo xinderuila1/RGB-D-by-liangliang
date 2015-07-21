@@ -32,6 +32,44 @@ void coor_img2cam(const cv::Mat& img_d, cv::Mat& img_out)
 
 }
 
+//Add by gaoyu 2015-7-21
+void coor_img2cam_by_gaoyu(const cv::Mat& img_d, cv::Mat& img_out)
+{
+	img_out.create(img_d.rows, img_d.cols, CV_32FC3);
+
+	for(int y=0; y<img_d.rows; ++y)
+		for(int x=0; x<img_d.cols; ++x){
+			cv::Point3f& pc = img_out.at<cv::Point3f>(y,x);
+			float d = img_d.at<float>(y,x);
+
+
+			GLint viewport[4];
+			GLdouble modelview[16];
+			GLdouble projection[16];
+			GLfloat winX, winY, winZ;
+			GLdouble posX, posY, posZ;
+			glPushMatrix();
+			//缩放、平移、旋转等变换 为什么？？？？？？？？？？
+//			glScalef(......);
+//			glRotatef(......);
+//			glTranslatef(......);
+
+			//变换要绘图函数里的顺序一样，否则坐标转换会产生错误
+			glGetIntegerv(GL_VIEWPORT, viewport); // 得到的是最后一个设置视口的参数
+			glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
+			glGetDoublev(GL_PROJECTION_MATRIX, projection);
+			glPopMatrix();
+			winX = x;
+			winY = y;
+			winZ = d;
+//			glReadPixels((int)winX, (int)winY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+			gluUnProject(winX, winY, winZ, modelview, projection, viewport, &posX, &posY, &posZ);
+			pc.x = posX;
+			pc.y = posY;
+			pc.z = posZ;
+		}
+}
+
 bool nice_tri(const cv::Point3f& p1, const cv::Point3f& p2, const cv::Point3f& p3, float threshhold)
 {
 	if( glm::length(TO_GLM_VEC3(p1)-TO_GLM_VEC3(p2))>threshhold )
@@ -86,6 +124,76 @@ void draw_world()
 
 
 //读取数据的部分写在绘制函数里面  Add by gaoyu 2015-7-20
+void draw_model_by_gaoyu()
+{
+//	glutSolidTeapot(1);
+//	glStaff::xyz_frame(1,1,1,false);
+static int file_i=0, first=1;
+	if( play_on || first ){
+		first = 0;
+		file_i = (file_i+1) % 800;
+		char ss[100]; sprintf(ss, "%d", file_i);
+		std::string file_name;
+		file_name = std::string(DATA_FILE_PATH"rgb/") + ss + ".png";
+		read_rgb(file_name.c_str(), img_rgb);
+		file_name = std::string(DATA_FILE_PATH"depth/") + ss + ".dat";
+		read_depth_by_gaoyu(file_name.c_str(), img_depth);
+
+		coor_img2cam_by_gaoyu(img_depth, img_3d);
+		reconstruct(img_3d, tri_idxes);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_rgb.cols, img_rgb.rows, 0, GL_RGB, GL_UNSIGNED_BYTE, img_rgb.data);
+
+		std::cout << "img num: " << file_i << "\n";
+	}
+
+	if(play_mode){
+		GLboolean elt = glIsEnabled(GL_LIGHTING);
+		GLboolean tex = glIsEnabled(GL_TEXTURE_2D);
+		glDisable(GL_LIGHTING);
+		glDisable(GL_TEXTURE_2D);
+
+		float rgb[4]={0,1,0, 1};
+		glBegin(GL_POINTS);
+		for(int i=0; i<img_3d.rows; ++i)
+			for(int j=0; j<img_3d.cols; ++j){
+				glStaff::hsl_to_rgb((img_3d.at<cv::Point3f>(i,j).y-1)/4*360,
+						1, 0.5f, rgb);
+				glColor3fv(rgb);
+				glVertex3fv(&img_3d.at<cv::Point3f>(i,j).x);
+			}
+		glEnd();
+
+		if(elt) glEnable(GL_LIGHTING);
+		if(tex) glEnable(GL_TEXTURE_2D);
+	}else{
+		GLfloat c[]={.0f, .0f, .0f, 1};
+		glMaterialfv(GL_FRONT, GL_SPECULAR, c);
+		c[0]=0.7f; c[1]=0.7f; c[2]=0.7f;
+		glMaterialfv(GL_FRONT, GL_DIFFUSE, c);
+		c[0]=2.0f; c[1]=2.0f; c[2]=2.0f;
+		glMaterialfv(GL_FRONT, GL_AMBIENT, c);
+		glBegin(GL_TRIANGLES);
+		#define  POINT_1D(a)  (img_3d.at<cv::Point3f>((a)/img_3d.cols,(a)%img_3d.cols))
+		float tx = 1.0f / img_3d.cols, ty = 1.0f / img_3d.rows;
+		for(unsigned i=0; i<tri_idxes.size()/3; ++i){
+			glm::vec3 n = glm::normalize(glm::cross(
+					TO_GLM_VEC3(POINT_1D(tri_idxes[i*3+1]))-TO_GLM_VEC3(POINT_1D(tri_idxes[i*3])),
+					TO_GLM_VEC3(POINT_1D(tri_idxes[i*3+2]))-TO_GLM_VEC3(POINT_1D(tri_idxes[i*3]))  ) );
+			glNormal3fv(&n[0]);
+			glTexCoord2f(tri_idxes[i*3]%img_3d.cols*tx,tri_idxes[i*3]/img_3d.cols*ty);
+			glVertex3fv(&POINT_1D(tri_idxes[i*3]).x);
+			glTexCoord2f(tri_idxes[i*3+1]%img_3d.cols*tx,tri_idxes[i*3+1]/img_3d.cols*ty);
+			glVertex3fv(&POINT_1D(tri_idxes[i*3+1]).x);
+			glTexCoord2f(tri_idxes[i*3+2]%img_3d.cols*tx,tri_idxes[i*3+2]/img_3d.cols*ty);
+			glVertex3fv(&POINT_1D(tri_idxes[i*3+2]).x);
+		}
+		glEnd();
+	}
+
+}
+
+
 void draw_model()
 {
 //	glutSolidTeapot(1);
@@ -171,7 +279,7 @@ void draw(const glm::mat4& mat_model, const glm::mat4& mat_view)
 	glMatrixMode(GL_MODELVIEW); glLoadMatrixf(&mat_view[0][0]);
 		draw_world();
 	glMatrixMode(GL_MODELVIEW); glMultMatrixf(&mat_model[0][0]);
-		draw_model();
+		draw_model_by_gaoyu();
 	t = omp_get_wtime()-t;
 	char st[50]; sprintf(st, "draw time (ms) :  %.2f", t*1000);
 	glStaff::text_upperLeft(st, 1);
@@ -206,6 +314,36 @@ void init_tex()
 }
 
 
+//int main(void)
+//{
+//	glStaff::init_win(800, 800, "OpenGL", "");
+//	glStaff::init_gl(); // have to be called after glStaff::init_win
+//
+//	glStaff::set_mat_view(
+//		glm::lookAt( glm::vec3(0,5,-10), glm::vec3(0,0,0), glm::vec3(0,1,0) ) );
+//	glStaff::set_mat_model(
+//		glm::rotate(3.14f*0.17f, glm::vec3(1,0,0)) * glm::translate( glm::vec3(0,0,-5) ) );
+//
+//	glStaff::add_key_callback('P', mkey_p, L"print");
+//	glStaff::add_key_callback('T', mkey_t, L"tex");
+//	glStaff::add_key_callback('A', mkey_a, L"a");
+//	glStaff::add_key_callback('M', mkey_m, L"a");
+//
+////	read_rgb("../data/rgb/209.jpg", img_rgb);
+////	read_depth("../data/depth/209.dat", img_depth);
+////	coor_img2cam(img_depth, img_3d);
+////	reconstruct(img_3d, tri_idxes);
+//	init_tex();
+//	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+//
+////	cv::imshow("rgb", img_rgb);
+////	cv::imshow("depth", img_depth*(1.0f/10000) );
+////	cv::waitKey(0);
+//
+//	glStaff::renderLoop(draw);
+//}
+
+//Add by gaoyu 2015-7-21
 int main(void)
 {
 	glStaff::init_win(800, 800, "OpenGL", "");
