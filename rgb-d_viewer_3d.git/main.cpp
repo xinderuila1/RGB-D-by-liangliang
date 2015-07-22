@@ -346,7 +346,10 @@ void init_tex()
 //Add by gaoyu 2015-7-21
 int main(void)
 {
-	glStaff::init_win(800, 800, "OpenGL", "");
+	//glStaff::init_win(800, 800, "OpenGL", "");
+	glStaff::init_win(1024, 600, "OpenGL", "");//适应我保存的PNG文件数据 Add by gaoyu 2015-7-22
+
+
 	glStaff::init_gl(); // have to be called after glStaff::init_win
 
 	glStaff::set_mat_view(
