@@ -84,7 +84,7 @@ bool nice_tri(const cv::Point3f& p1, const cv::Point3f& p2, const cv::Point3f& p
 void reconstruct(const cv::Mat& p3d, std::vector<int>& tris)
 {
 	tris.clear();
-	float threashhold = 0.5f;
+	float threashhold = 0.7f;
 	for(int i=0; i<p3d.rows-1; ++i)
 		for(int j=0; j<p3d.cols-1; ++j){
 			#define TRIS_PUSH(i,j)  tris.push_back( (i)*p3d.cols+(j) )
