@@ -6,6 +6,14 @@
 
 cv::Mat img_rgb, img_depth, img_3d;
 std::vector<int> tri_idxes;
+
+//start Add by gaoyu 2015-7-27
+cv::Mat img_3d_center;
+std::vector<int> tri_idxes_center;
+//end
+
+
+
 float resolution_X=640, resolution_Y=480, xzFactor=1.12213 * 1.2, yzFactor=0.84160 * 1.2;
 
 bool play_on = false;
@@ -111,6 +119,94 @@ void coor_img2cam_by_gaoyu(const cv::Mat& img_d, cv::Mat& img_out)
 		}
 }
 
+void coor_img2cam_translate_center(const cv::Mat& img_d, cv::Mat& img_out)
+{
+	img_out.create(img_d.rows, img_d.cols, CV_32FC3);
+
+
+	//为了确定,点云的长方体包围盒   Add by gaoyu 2015-7-27
+	float max_x = -1.0e+038;
+	float max_y = -1.0e+038;
+	float max_z = -1.0e+038;
+	float min_x = 1.0e+038;
+	float min_y = 1.0e+038;
+	float min_z = 1.0e+038;
+
+
+	for(int y=0; y<img_d.rows; ++y)
+		for(int x=0; x<img_d.cols; ++x){
+			cv::Point3f& pc = img_out.at<cv::Point3f>(y,x);
+			float d = img_d.at<float>(y,x);
+
+
+			GLint viewport[4];
+			GLdouble modelview[16];
+			GLdouble projection[16];
+			GLfloat winX, winY, winZ;
+			GLdouble posX, posY, posZ;
+			glPushMatrix();
+			//缩放、平移、旋转等变换 为什么？？？？？？？？？？
+//			glScalef(......);
+//			glRotatef(......);
+//			glTranslatef(......);
+
+			//变换要绘图函数里的顺序一样，否则坐标转换会产生错误
+			glGetIntegerv(GL_VIEWPORT, viewport); // 得到的是最后一个设置视口的参数
+			glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
+			glGetDoublev(GL_PROJECTION_MATRIX, projection);
+			glPopMatrix();
+			winX = x;
+			winY = y;
+			winZ = d*0.99;//注意记住这个参数,否则有些远的地方纹理贴不上
+//			glReadPixels((int)winX, (int)winY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+			gluUnProject(winX, winY, winZ, modelview, projection, viewport, &posX, &posY, &posZ);
+			pc.x = posX;
+			pc.y = posY;
+			pc.z = posZ;
+			//找见长方体对角线最大值点
+			if(pc.x > max_x)
+			{
+				max_x = pc.x;
+			}
+
+			if(pc.y > max_y)
+			{
+				max_y = pc.y;
+			}
+
+			if(pc.z > max_z)
+			{
+				max_z = pc.z;
+			}
+
+			//找见长方体对角线最小值点
+			if(pc.x < min_x)
+			{
+				min_x = pc.x;
+			}
+
+			if(pc.y < min_y)
+			{
+				min_y = pc.y;
+			}
+
+			if(pc.z < min_z)
+			{
+				min_z = pc.z;
+			}
+		}
+
+	for(int y=0; y<img_d.rows; ++y)
+		for(int x=0; x<img_d.cols; ++x){
+			cv::Point3f& pc = img_out.at<cv::Point3f>(y,x);
+			float d = img_d.at<float>(y,x);
+
+			pc.x = pc.x - (max_x + min_x)*0.5;
+			pc.y = pc.y - (max_y + min_y)*0.5;
+			pc.z = pc.z - (max_z + min_z)*0.5;
+		}
+}
+
 bool nice_tri(const cv::Point3f& p1, const cv::Point3f& p2, const cv::Point3f& p3, float threshhold)
 {
 	if( glm::length(TO_GLM_VEC3(p1)-TO_GLM_VEC3(p2))>threshhold )
@@ -183,6 +279,13 @@ static int file_i=0, first=1;
 		coor_img2cam_by_gaoyu(img_depth, img_3d);
 		reconstruct(img_3d, tri_idxes);
 
+		//Add by gaoyu 2015-7-27
+		//read_depth_by_gaoyu(file_name.c_str(), img_depth_center);
+		coor_img2cam_translate_center(img_depth, img_3d_center);
+		reconstruct(img_3d, tri_idxes_center);
+
+
+
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_rgb.cols, img_rgb.rows, 0, GL_RGB, GL_UNSIGNED_BYTE, img_rgb.data);
 
 		std::cout << "img num: " << file_i << "\n";
@@ -209,6 +312,28 @@ static int file_i=0, first=1;
 		if(tex) glEnable(GL_TEXTURE_2D);
 	}
 	else if(translate_center){
+		GLfloat c[]={.0f, .0f, .0f, 1};
+		glMaterialfv(GL_FRONT, GL_SPECULAR, c);
+		c[0]=0.7f; c[1]=0.7f; c[2]=0.7f;
+		glMaterialfv(GL_FRONT, GL_DIFFUSE, c);
+		c[0]=2.0f; c[1]=2.0f; c[2]=2.0f;
+		glMaterialfv(GL_FRONT, GL_AMBIENT, c);
+		glBegin(GL_TRIANGLES);
+		#define  POINT_2D(a)  (img_3d_center.at<cv::Point3f>((a)/img_3d_center.cols,(a)%img_3d_center.cols))
+		float tx = 1.0f / img_3d_center.cols, ty = 1.0f / img_3d_center.rows;
+		for(unsigned i=0; i<tri_idxes_center.size()/3; ++i){
+			glm::vec3 n = glm::normalize(glm::cross(
+					TO_GLM_VEC3(POINT_2D(tri_idxes_center[i*3+1]))-TO_GLM_VEC3(POINT_2D(tri_idxes_center[i*3])),
+					TO_GLM_VEC3(POINT_2D(tri_idxes_center[i*3+2]))-TO_GLM_VEC3(POINT_2D(tri_idxes_center[i*3]))  ) );
+			glNormal3fv(&n[0]);
+			glTexCoord2f(tri_idxes_center[i*3]%img_3d_center.cols*tx,tri_idxes_center[i*3]/img_3d_center.cols*ty);
+			glVertex3fv(&POINT_2D(tri_idxes_center[i*3]).x);
+			glTexCoord2f(tri_idxes_center[i*3+1]%img_3d_center.cols*tx,tri_idxes_center[i*3+1]/img_3d_center.cols*ty);
+			glVertex3fv(&POINT_2D(tri_idxes_center[i*3+1]).x);
+			glTexCoord2f(tri_idxes_center[i*3+2]%img_3d_center.cols*tx,tri_idxes_center[i*3+2]/img_3d_center.cols*ty);
+			glVertex3fv(&POINT_2D(tri_idxes_center[i*3+2]).x);
+		}
+		glEnd();
 	}
 	else{
 		GLfloat c[]={.0f, .0f, .0f, 1};
