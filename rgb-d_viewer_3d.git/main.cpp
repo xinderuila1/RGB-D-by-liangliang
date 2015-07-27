@@ -292,24 +292,50 @@ static int file_i=0, first=1;
 	}
 
 	if(play_mode){
-		GLboolean elt = glIsEnabled(GL_LIGHTING);
-		GLboolean tex = glIsEnabled(GL_TEXTURE_2D);
-		glDisable(GL_LIGHTING);
-		glDisable(GL_TEXTURE_2D);
+		if(translate_center)
+		{
+			GLboolean elt = glIsEnabled(GL_LIGHTING);
+			GLboolean tex = glIsEnabled(GL_TEXTURE_2D);
+			glDisable(GL_LIGHTING);
+			glDisable(GL_TEXTURE_2D);
 
-		float rgb[4]={0,1,0, 1};
-		glBegin(GL_POINTS);
-		for(int i=0; i<img_3d.rows; ++i)
-			for(int j=0; j<img_3d.cols; ++j){
-				glStaff::hsl_to_rgb((img_3d.at<cv::Point3f>(i,j).y-1)/4*360,
-						1, 0.5f, rgb);
-				glColor3fv(rgb);
-				glVertex3fv(&img_3d.at<cv::Point3f>(i,j).x);
-			}
-		glEnd();
+			float rgb[4]={0,1,0, 1};
+			glBegin(GL_POINTS);
+			for(int i=0; i<img_3d_center.rows; ++i)
+				for(int j=0; j<img_3d_center.cols; ++j){
+					//不进行hsl到rgb的转换,仅仅用绿色绘制点云  Add by gaoyu 2015-7-27
+	//				glStaff::hsl_to_rgb((img_3d.at<cv::Point3f>(i,j).y-1)/4*360,
+	//						1, 0.5f, rgb);
+					glColor3fv(rgb);
+					glVertex3fv(&img_3d_center.at<cv::Point3f>(i,j).x);
+				}
+			glEnd();
 
-		if(elt) glEnable(GL_LIGHTING);
-		if(tex) glEnable(GL_TEXTURE_2D);
+			if(elt) glEnable(GL_LIGHTING);
+			if(tex) glEnable(GL_TEXTURE_2D);
+		}
+		else
+		{
+			GLboolean elt = glIsEnabled(GL_LIGHTING);
+			GLboolean tex = glIsEnabled(GL_TEXTURE_2D);
+			glDisable(GL_LIGHTING);
+			glDisable(GL_TEXTURE_2D);
+
+			float rgb[4]={0,1,0, 1};
+			glBegin(GL_POINTS);
+			for(int i=0; i<img_3d.rows; ++i)
+				for(int j=0; j<img_3d.cols; ++j){
+					//不进行hsl到rgb的转换,仅仅用绿色绘制点云  Add by gaoyu 2015-7-27
+	//				glStaff::hsl_to_rgb((img_3d.at<cv::Point3f>(i,j).y-1)/4*360,
+	//						1, 0.5f, rgb);
+					glColor3fv(rgb);
+					glVertex3fv(&img_3d.at<cv::Point3f>(i,j).x);
+				}
+			glEnd();
+
+			if(elt) glEnable(GL_LIGHTING);
+			if(tex) glEnable(GL_TEXTURE_2D);
+		}
 	}
 	else if(translate_center){
 		GLfloat c[]={.0f, .0f, .0f, 1};
