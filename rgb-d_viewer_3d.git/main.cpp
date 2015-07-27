@@ -10,6 +10,7 @@ float resolution_X=640, resolution_Y=480, xzFactor=1.12213 * 1.2, yzFactor=0.841
 
 bool play_on = false;
 bool play_mode = false;
+bool translate_center = false;
 
 #define  TO_GLM_VEC3(a)  (*((glm::vec3*)(&(a).x)))
 
@@ -206,7 +207,10 @@ static int file_i=0, first=1;
 
 		if(elt) glEnable(GL_LIGHTING);
 		if(tex) glEnable(GL_TEXTURE_2D);
-	}else{
+	}
+	else if(translate_center){
+	}
+	else{
 		GLfloat c[]={.0f, .0f, .0f, 1};
 		glMaterialfv(GL_FRONT, GL_SPECULAR, c);
 		c[0]=0.7f; c[1]=0.7f; c[2]=0.7f;
@@ -336,6 +340,7 @@ void mkey_t()
 }
 void mkey_a() { play_on = !play_on; }
 void mkey_m() { play_mode = !play_mode; }
+void mkey_c() { translate_center = !translate_center; }
 
 void init_tex()
 {
@@ -401,6 +406,7 @@ int main(void)
 	glStaff::add_key_callback('T', mkey_t, L"tex");
 	glStaff::add_key_callback('A', mkey_a, L"a");
 	glStaff::add_key_callback('M', mkey_m, L"a");
+	glStaff::add_key_callback('C', mkey_c, L"c");
 
 //	read_rgb("../data/rgb/209.jpg", img_rgb);
 //	read_depth("../data/depth/209.dat", img_depth);
