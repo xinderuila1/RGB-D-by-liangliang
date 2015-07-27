@@ -201,8 +201,8 @@ void coor_img2cam_translate_center(const cv::Mat& img_d, cv::Mat& img_out)
 			cv::Point3f& pc = img_out.at<cv::Point3f>(y,x);
 			float d = img_d.at<float>(y,x);
 
-			pc.x = pc.x - (max_x + min_x)*0.5;
-			pc.y = pc.y - (max_y + min_y)*0.5;
+			//pc.x = pc.x - (max_x + min_x)*0.5;
+			//pc.y = pc.y - (max_y + min_y)*0.5;
 			pc.z = pc.z - (max_z + min_z)*0.5;
 		}
 }
