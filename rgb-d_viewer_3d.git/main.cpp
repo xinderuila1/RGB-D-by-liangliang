@@ -313,6 +313,9 @@ static int file_i=0, first=1;
 
 			if(elt) glEnable(GL_LIGHTING);
 			if(tex) glEnable(GL_TEXTURE_2D);
+
+			//不仅仅将点云移动到视角中心,还循环移动视角,以对点云做一个概览  Add by gaoyu 2015-7-29
+			glStaff::Internal::mat_view *= glm::rotate(float(3.1415926/180.0), glm::vec3(0,1,0));
 		}
 		else
 		{
@@ -360,6 +363,9 @@ static int file_i=0, first=1;
 			glVertex3fv(&POINT_2D(tri_idxes_center[i*3+2]).x);
 		}
 		glEnd();
+
+		//不仅仅将点云移动到视角中心,还循环移动视角,以对点云做一个概览  Add by gaoyu 2015-7-29
+		glStaff::Internal::mat_view *= glm::rotate(float(3.1415926/180.0), glm::vec3(0,1,0));
 	}
 	else{
 		GLfloat c[]={.0f, .0f, .0f, 1};
@@ -491,7 +497,10 @@ void mkey_t()
 }
 void mkey_a() { play_on = !play_on; }
 void mkey_m() { play_mode = !play_mode; }
-void mkey_c() { translate_center = !translate_center; }
+void mkey_c() { translate_center = !translate_center;
+
+glStaff::Internal::mat_view = glm::translate(glm::vec3(0,0,-50)) * glStaff::Internal::mat_view;//按下快捷键"C"时,将视角移远一些  Add by gaoyu 2015-7-29
+}
 
 void init_tex()
 {
