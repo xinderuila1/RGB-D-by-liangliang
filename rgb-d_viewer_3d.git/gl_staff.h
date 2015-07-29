@@ -347,7 +347,7 @@ namespace Internal {
 	
 	inline void callback_scroll(GLFWwindow* window, double xoffset, double yoffset)
 	{
-		mat_view = glm::translate(glm::vec3(0,0, -speed_scale*5*float(yoffset))) * mat_view;
+		mat_view = glm::translate(glm::vec3(0,0, -speed_scale*5*float(yoffset))) * mat_view;//滚轮缩放视角远近  Add by gaoyu 2015-7-29
 	}
 	
 	// xpos,ypos: the new xy-coordinate, in screen coordinates, of the cursor
@@ -359,6 +359,7 @@ namespace Internal {
 		{
 			float dx = float(xpos-xpos_last), dy = float(ypos-ypos_last);
 			if(glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)!=GLFW_RELEASE){ // key left Ctrl is pressed
+				//鼠标左键+ctrl键旋转视图  Add by gaoyu 2015-7-29
 				mat_view *= glm::rotate(speed_scale/50*dx, glm::vec3(0,1,0));
 				glm::vec3 v = glm::vec3(glm::affineInverse(mat_view)*glm::vec4(1,0,0, 0));
 				mat_view *= glm::rotate(-speed_scale/50*dy, v);
