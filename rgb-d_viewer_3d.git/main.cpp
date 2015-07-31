@@ -296,8 +296,10 @@ static int file_i=0, first=1;
 		{
 			GLboolean elt = glIsEnabled(GL_LIGHTING);
 			GLboolean tex = glIsEnabled(GL_TEXTURE_2D);
-			glDisable(GL_LIGHTING);
-			glDisable(GL_TEXTURE_2D);
+//			glDisable(GL_LIGHTING);
+//			glDisable(GL_TEXTURE_2D);
+
+			float tx = 1.0f / img_3d_center.cols, ty = 1.0f / img_3d_center.rows;//顶点纹理映射  Add by gaoyu 2015-7-31
 
 			float rgb[4]={0,1,0, 1};
 			glBegin(GL_POINTS);
@@ -306,7 +308,11 @@ static int file_i=0, first=1;
 					//不进行hsl到rgb的转换,仅仅用绿色绘制点云  Add by gaoyu 2015-7-27
 	//				glStaff::hsl_to_rgb((img_3d.at<cv::Point3f>(i,j).y-1)/4*360,
 	//						1, 0.5f, rgb);
-					glColor3fv(rgb);
+					//glColor3fv(rgb);
+
+					glTexCoord2f(j*tx,
+							                 i*ty);//顶点纹理映射  Add by gaoyu 2015-7-31
+
 					glVertex3fv(&img_3d_center.at<cv::Point3f>(i,j).x);
 				}
 			glEnd();
@@ -499,7 +505,7 @@ void mkey_a() { play_on = !play_on; }
 void mkey_m() { play_mode = !play_mode; }
 void mkey_c() { translate_center = !translate_center;
 
-glStaff::Internal::mat_view = glm::translate(glm::vec3(0,0,-50)) * glStaff::Internal::mat_view;//按下快捷键"C"时,将视角移远一些  Add by gaoyu 2015-7-29
+glStaff::Internal::mat_view = glm::translate(glm::vec3(0,0,-100)) * glStaff::Internal::mat_view;//按下快捷键"C"时,将视角移远一些  Add by gaoyu 2015-7-29
 }
 
 void init_tex()
