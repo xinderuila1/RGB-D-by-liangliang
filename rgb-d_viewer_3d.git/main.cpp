@@ -45,14 +45,9 @@ void coor_img2cam_by_gaoyu(const cv::Mat& img_d, cv::Mat& img_out)
 {
 	img_out.create(img_d.rows, img_d.cols, CV_32FC3);
 
-
-	//为了确定,点云的长方体包围盒   Add by gaoyu 2015-7-27
-	float max_x = -1.0e+038;
-	float max_y = -1.0e+038;
-	float max_z = -1.0e+038;
-	float min_x = 1.0e+038;
-	float min_y = 1.0e+038;
-	float min_z = 1.0e+038;
+	float center_x = 0;
+	float center_y = 0;
+	float center_z = 0;
 
 
 	for(int y=0; y<img_d.rows; ++y)
@@ -85,38 +80,28 @@ void coor_img2cam_by_gaoyu(const cv::Mat& img_d, cv::Mat& img_out)
 			pc.x = posX;
 			pc.y = posY;
 			pc.z = posZ;
-			//找见长方体对角线最大值点
-			if(pc.x > max_x)
-			{
-				max_x = pc.x;
-			}
 
-			if(pc.y > max_y)
-			{
-				max_y = pc.y;
-			}
 
-			if(pc.z > max_z)
+			if(y == 200 && x == 512)
 			{
-				max_z = pc.z;
-			}
-
-			//找见长方体对角线最小值点
-			if(pc.x < min_x)
-			{
-				min_x = pc.x;
-			}
-
-			if(pc.y < min_y)
-			{
-				min_y = pc.y;
-			}
-
-			if(pc.z < min_z)
-			{
-				min_z = pc.z;
+				center_x = pc.x;
+				center_y = pc.y + 2;
+				center_z = pc.z;
 			}
 		}
+
+
+	for(int y=0; y<img_d.rows; ++y)
+		for(int x=0; x<img_d.cols; ++x){
+			cv::Point3f& pc = img_out.at<cv::Point3f>(y,x);
+			float d = img_d.at<float>(y,x);
+
+			pc.x = pc.x - center_x;
+			pc.y = pc.y - center_y;
+			pc.z = pc.z - center_z;
+		}
+
+	//不在找包围盒
 }
 
 void coor_img2cam_translate_center(const cv::Mat& img_d, cv::Mat& img_out)
