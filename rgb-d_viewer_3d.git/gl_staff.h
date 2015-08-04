@@ -67,9 +67,16 @@ namespace Internal{
 	class keyFunc{ public: void(*f)(); const wchar_t* s; };
 	static glm::mat4	mat_model, mat_view;// transformation matrix
 	static glm::mat4	mat_projection;     // projection matrix
-	static float		speed_scale = 0.1f;	// interactive speed factor
-	static float		frustum_fovy = 45;	// fovy of frustum
-	static float		n_clip=1.0f, f_clip=1.0e5f;
+	//static float		speed_scale = 0.1f;	// interactive speed factor
+
+	static float		speed_scale = 0.5f;	//由于游戏中的场景比较大,所以修改了视角缩放的速度  Modified by gaoyu 2015-8-4
+	static float		frustum_fovy = 29.296875;	// 设置成speed-dream中的游戏参数
+	static float		n_clip=0.3f, f_clip=42001.0000f;
+
+//	static float		frustum_fovy = 45;	// fovy of frustum
+//	static float		n_clip=1.0f, f_clip=1.0e5f;
+
+
 	static GLFWwindow*	curr_window;  // current window
 	static int			help_display; // should display help content or not
 //	static FTFont*		font_ftgl;    // the ftgl font used to draw text, use wchar_t for chinese~
