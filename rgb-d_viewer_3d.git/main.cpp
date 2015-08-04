@@ -322,6 +322,11 @@ static int file_i=0, first=1;
 					//不进行hsl到rgb的转换,仅仅用绿色绘制点云  Add by gaoyu 2015-7-27
 	//				glStaff::hsl_to_rgb((img_3d.at<cv::Point3f>(i,j).y-1)/4*360,
 	//						1, 0.5f, rgb);
+
+					//进行hsl的转换    Add by gaoyu 2015-8-4
+					glStaff::hsl_to_rgb((img_3d.at<cv::Point3f>(i,j).y-1)/4*50,
+							1, 0.5f, rgb);
+
 					glColor3fv(rgb);
 					glVertex3fv(&img_3d.at<cv::Point3f>(i,j).x);
 				}
