@@ -559,6 +559,8 @@ int main(void)
 	glStaff::add_key_callback('M', mkey_m, L"a");
 	glStaff::add_key_callback('C', mkey_c, L"c");
 
+	glStaff::Internal::mat_view = glm::translate(glm::vec3(0,0,-50)) * glStaff::Internal::mat_view;//初始状态讲视角移动的远一些  Add by gaoyu 2015-8-4
+
 //	read_rgb("../data/rgb/209.jpg", img_rgb);
 //	read_depth("../data/depth/209.dat", img_depth);
 //	coor_img2cam(img_depth, img_3d);
