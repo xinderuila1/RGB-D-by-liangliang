@@ -332,8 +332,8 @@ static int file_i=0, first=1;
 	//				glStaff::hsl_to_rgb((img_3d.at<cv::Point3f>(i,j).y-1)/4*360,
 	//						1, 0.5f, rgb);
 
-					//进行hsl的转换    Add by gaoyu 2015-8-4
-					glStaff::hsl_to_rgb((img_3d.at<cv::Point3f>(i,j).y-1)/4*50,
+					//进行hsl的转换,产生颜色过度    Add by gaoyu 2015-8-5
+					glStaff::hsl_to_rgb((img_3d.at<cv::Point3f>(i,j).z-1)/4*2.5,
 							1, 0.5f, rgb);
 
 					glColor3fv(rgb);
