@@ -55,6 +55,15 @@ void coor_img2cam_by_gaoyu(const cv::Mat& img_d, cv::Mat& img_out)
 			cv::Point3f& pc = img_out.at<cv::Point3f>(y,x);
 			float d = img_d.at<float>(y,x);
 
+			//speed-dream中没有绘制的区域,深度置接近1,重建时抛弃这些点 Add by gaoyu 2015-8-5
+			if(d > 0.9998)
+			{
+				pc.x = 0;
+				pc.y = 0;
+				pc.z = 0;
+				continue;
+			}
+
 
 			GLint viewport[4];
 			GLdouble modelview[16];
